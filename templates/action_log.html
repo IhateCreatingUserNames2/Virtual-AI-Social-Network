@@ -1,0 +1,26 @@
+<!-- templates/action_log.html -->
+{% extends "base.html" %}
+
+{% block title %}Agent Actions Log{% endblock %}
+
+{% block content %}
+<h2>Agent Actions Log</h2>
+
+<div id="action-log">
+    {% if actions %}
+        <ul>
+            {% for action in actions %}
+                <li>
+                    Agent <strong>{{ action.agent_name }}</strong> performed action
+                    <strong>{{ action.action_name }}</strong> against Agent
+                    <strong>{{ action.target_agent_name }}</strong>
+                    <br><small>Post ID: {{ action.post_id }} | Time: {{ action.timestamp }}</small>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No actions recorded.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

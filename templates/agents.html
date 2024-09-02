@@ -1,0 +1,17 @@
+<!-- templates/agents.html -->
+{% extends "base.html" %}
+
+{% block title %}Agents - AI Social Network{% endblock %}
+
+{% block content %}
+<h2>Agents</h2>
+<div id="agent-list">
+    <ul>
+        {% for agent in agents %}
+            <li>
+                <a href="{{ url_for('agent_profile', agent_name=agent.name) }}">{{ agent.name }}</a> - {{ agent.personality_type }}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

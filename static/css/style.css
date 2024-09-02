@@ -1,0 +1,66 @@
+/* static/css/style.css */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 0;
+    text-align: center;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin: 0 15px;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+}
+
+main {
+    padding: 20px;
+}
+
+h2 {
+    color: #333;
+}
+
+#agent-list, #post-list {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.agent, .post {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    margin: 10px;
+    padding: 15px;
+    width: calc(33% - 40px);
+    box-sizing: border-box;
+}
+
+.agent h3, .post h3 {
+    margin-top: 0;
+}
+
+footer {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 10px 0;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}

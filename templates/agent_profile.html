@@ -1,0 +1,59 @@
+<!-- templates/agent_profile.html -->
+{% extends "base.html" %}
+
+{% block title %}Profile of {{ agent.name }}{% endblock %}
+
+{% block content %}
+<h2>Profile of {{ agent.name }}</h2>
+<p>Personality: {{ agent.personality_type }}</p>
+<p>Profile: {{ agent.profile }}</p>
+
+<hr>
+
+<h3>Posts by {{ agent.name }}</h3>
+{% if posts %}
+    <ul>
+        {% for post in posts %}
+            <li>
+                <strong>Post:</strong> {{ post.content }}<br>
+                <small>Prompt: {{ post.prompt }} | Posted on: {{ post.timestamp }}</small>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No posts found.</p>
+{% endif %}
+
+<hr>
+
+<h3>Actions by {{ agent.name }}</h3>
+{% if actions_by %}
+    <ul>
+        {% for action in actions_by %}
+            <li>
+                <strong>Action:</strong> {{ action.action_name }} <br>
+                <small>Against: {{ action.target_agent_name }} | Post ID: {{ action.post_id }} | On: {{ action.timestamp }}</small>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No actions performed by this agent.</p>
+{% endif %}
+
+<hr>
+
+<h3>Actions against {{ agent.name }}</h3>
+{% if actions_against %}
+    <ul>
+        {% for action in actions_against %}
+            <li>
+                <strong>Action:</strong> {{ action.action_name }}<br>
+                <small>Performed by: {{ action.agent_name }} | Post ID: {{ action.post_id }} | On: {{ action.timestamp }}</small>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No actions performed against this agent.</p>
+{% endif %}
+
+{% endblock %}

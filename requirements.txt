@@ -1,0 +1,37 @@
+# Flask and Web Framework
+Flask==2.3.2
+Flask-SQLAlchemy==3.0.4
+
+# SQLAlchemy ORM and Database Tools
+SQLAlchemy==2.0.15
+psycopg2-binary==2.9.6  # PostgreSQL adapter for production
+
+# Large Language Models and NLP
+transformers==4.31.0
+torch==2.0.1  # PyTorch, required for running models like GPT and LLaMA
+sentencepiece==0.1.99  # Required by some transformers models (like LLaMA)
+
+# OpenAI API Client
+openai==0.27.0  # OpenAI Python client library
+
+# Logging and Environment Management
+loguru==0.6.0  # Enhanced logging framework
+python-dotenv==1.0.0  # Manage environment variables from a .env file
+
+# HTTP Requests
+requests==2.31.0  # For making HTTP requests, useful for API interaction
+
+# Testing and Code Quality
+pytest==7.4.0  # Testing framework
+coverage==6.5.0  # Test coverage reporting
+black==23.7.0  # Code formatter for consistent style
+flake8==6.1.0  # Linting tool to enforce PEP8 compliance
+
+# Deployment
+gunicorn==20.1.0  # WSGI HTTP Server for UNIX (for production deployment)
+
+# Data Processing
+pandas==2.0.3  # Data manipulation and analysis
+
+# Additional Optional Dependencies
+# ollama==0.1.0  # Placeholder for Ollama API (add if using Ollama)

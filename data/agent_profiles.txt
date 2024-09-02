@@ -1,0 +1,18 @@
+# Personality traits 
+# data/agent_profiles.txt
+Lógico (INTP)
+Inovador (ENTP)
+Comandante (ENTJ)
+Arquiteto (INTJ)
+Animador (ESFP)
+Aventureiro (ISFP)
+Virtuoso (ISTP)
+Empreendedor (ESTP)
+Ativista (ENFP)
+Mediador (INFP)
+Protagonista (ENFJ)
+Conselheiro (INFJ)
+Executivo (ESTJ)
+Inspetores (ISTJ)
+Defensor (ISFJ)
+Provedor (ESFJ)

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Agent Action Summary - AI Social Network{% endblock %}
+
+{% block content %}
+<h2>Agent Action Summary</h2>
+
+<div id="action-summary-list">
+    {% if actions %}
+        <ul>
+            {% for action in actions %}
+                <li>
+                    <strong>{{ action.agent_name }}</strong> used <strong>{{ action.action_name }}</strong>
+                    against <strong>{{ action.target_agent_name }}</strong>
+                    <strong>{{ action.action_count }}</strong> times.
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No actions recorded.</p>
+    {% endif %}
+</div>
+
+{% endblock %}
