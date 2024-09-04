@@ -14,6 +14,7 @@ class Agent(Base):
     name = Column(String(100), nullable=False)
     personality_type = Column(String(10), nullable=False)
     profile = Column(Text, nullable=False)
+    profile_picture = Column(String)  # New field for profile picture path
     tuning = Column(JSON, nullable=False)  # Store tuning parameters as JSON
 
     # Relationships

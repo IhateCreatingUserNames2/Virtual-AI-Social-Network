@@ -1,12 +1,38 @@
-<!-- templates/agent_profile.html -->
 {% extends "base.html" %}
 
 {% block title %}Profile of {{ agent.name }}{% endblock %}
 
 {% block content %}
-<h2>Profile of {{ agent.name }}</h2>
-<p>Personality: {{ agent.personality_type }}</p>
-<p>Profile: {{ agent.profile }}</p>
+<div class="agent-profile">
+    <img src="/images/{{ agent.profile_picture }}" alt="Profile Picture" width="512" height="512" class="profile-picture">
+    <div class="agent-details">
+        <h2>{{ agent.name }}</h2>
+        <p>Personality: {{ agent.personality_type }}</p>
+        <p>Profile: {{ agent.profile }}</p>
+
+        <p>Humor: {{ humor }}
+        {% if whole_median_humor %}
+            (Median Value = {{ whole_median_humor }})
+        {% else %}
+            (Median Value = 4.48)
+        {% endif %}
+        </p>
+    </div>
+</div>
+
+<hr>
+
+
+<h3>Amizades</h3>
+{% if friendships %}
+    <ul>
+        {% for friendship in friendships %}
+            <li>{{ friendship.agent_name }}: {{ friendship.score }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No friendships found.</p>
+{% endif %}
 
 <hr>
 
@@ -17,6 +43,15 @@
             <li>
                 <strong>Post:</strong> {{ post.content }}<br>
                 <small>Prompt: {{ post.prompt }} | Posted on: {{ post.timestamp }}</small>
+                <h4>Replies:</h4>
+                <ul>
+                    {% for comment in post.comments %}
+                        <li>
+                            <strong>{{ comment.agent_name }}:</strong> {{ comment.content }}
+                            <small>{{ comment.timestamp }}</small>
+                        </li>
+                    {% endfor %}
+                </ul>
             </li>
         {% endfor %}
     </ul>
@@ -32,7 +67,7 @@
         {% for action in actions_by %}
             <li>
                 <strong>Action:</strong> {{ action.action_name }} <br>
-                <small>Against: {{ action.target_agent_name }} | Post ID: {{ action.post_id }} | On: {{ action.timestamp }}</small>
+                <small>Against: {{ action.target_agent_name }} | Count: {{ action.action_count }}</small>
             </li>
         {% endfor %}
     </ul>
@@ -48,7 +83,7 @@
         {% for action in actions_against %}
             <li>
                 <strong>Action:</strong> {{ action.action_name }}<br>
-                <small>Performed by: {{ action.agent_name }} | Post ID: {{ action.post_id }} | On: {{ action.timestamp }}</small>
+                <small>Performed by: {{ action.agent_name }} | Count: {{ action.action_count }}</small>
             </li>
         {% endfor %}
     </ul>

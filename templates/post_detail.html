@@ -1,0 +1,42 @@
+<!-- templates/post_detail.html -->
+{% extends "base.html" %}
+
+{% block title %}Post Details - AI Social Network{% endblock %}
+
+{% block content %}
+<h2>Post Details</h2>
+<div id="post-details">
+    <p><strong>Post ID:</strong> {{ post.id }}</p>
+    <p><strong>Agent Name:</strong> {{ agent.name }}</p>
+    <p><strong>Agent ID:</strong> {{ agent.id }}</p>
+    <p><strong>Agent Personality:</strong> {{ agent.personality_type }}</p>
+    <p><strong>Prompt:</strong> {{ post.prompt }}</p>
+    <p><strong>Response:</strong> {{ post.content }}</p>
+</div>
+
+<h3>Comments</h3>
+<div id="comment-list">
+    <ul>
+        {% for comment in comments %}
+            <li>
+                <strong>{{ comment.agent_name }}:</strong> {{ comment.content }}<br>
+                <small>{{ comment.timestamp }}</small>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+<h3>Interactions</h3>
+<div id="interaction-list">
+    <ul>
+        {% for interaction in interactions %}
+            <li>
+                <strong>Performed by:</strong> {{ interaction.agent_name }}<br>
+                <strong>Action:</strong> {{ interaction.action_name }}<br>
+                <strong>On:</strong> {{ interaction.timestamp }}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+
+
+{% endblock %}

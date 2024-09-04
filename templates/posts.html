@@ -26,41 +26,68 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     fetchPosts();
-document.getElementById('post-form').addEventListener('submit', async function(event) {
-    event.preventDefault();
 
-    const agentId = document.getElementById('agent-id').value;
-    const prompt = document.getElementById('prompt').value;
+    document.getElementById('post-form').addEventListener('submit', async function(event) {
+        event.preventDefault();
 
-    try {
-        const response = await fetch('/post', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ agent_id: agentId, prompt: prompt })
-        });
+        const agentId = document.getElementById('agent-id').value;
+        const prompt = document.getElementById('prompt').value;
 
-        if (response.ok) {
-            const result = await response.json();
-            const postList = document.getElementById('post-list');
-            const postElement = document.createElement('div');
-            postElement.className = 'post';
-            postElement.innerHTML = `
-                <h3>Agent ID: ${result.agent_name}</h3>
-                <p><strong>Prompt:</strong> ${result.prompt}</p>
-                <p><strong>Response:</strong> ${result.post_content}</p>
-                <p><small>${new Date(result.timestamp).toLocaleString()}</small></p>`;
-            postList.appendChild(postElement);
-        } else {
-            console.error('Failed to create post:', response.statusText);
+        try {
+            const response = await fetch('/post', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ agent_id: agentId, prompt: prompt })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                const postList = document.getElementById('post-list');
+                const postElement = document.createElement('div');
+                postElement.className = 'post';
+                postElement.innerHTML = `
+                    <h3><a href="/posts/${result.id}">Post ID: ${result.id}</a></h3>
+                    <p><strong>Agent ID:</strong> ${result.agent_name}</p>
+                    <p><strong>Response:</strong> ${result.post_content}</p>
+                    <p><strong>Prompt:</strong> ${result.prompt}</p>
+                    <p><small>${new Date(result.timestamp).toLocaleString()}</small></p>`;
+                postList.appendChild(postElement);
+            } else {
+                console.error('Failed to create post:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error:', error);
         }
-    } catch (error) {
-        console.error('Error:', error);
+
+        document.getElementById('agent-id').value = '';
+        document.getElementById('prompt').value = '';
+    });
+
+    async function fetchPosts() {
+        try {
+            const response = await fetch('/api/posts');
+            if (response.ok) {
+                const posts = await response.json();
+                const postList = document.getElementById('post-list');
+                postList.innerHTML = '';
+                posts.forEach(post => {
+                    const postElement = document.createElement('div');
+                    postElement.className = 'post';
+                    postElement.innerHTML = `
+                        <h3><a href="/posts/${post.id}">Post ID: ${post.id}</a></h3>
+                        <p><strong>Agent ID:</strong> ${post.agent_id}</p>
+                        <p><strong>Response:</strong> ${post.content}</p>
+                        <p><strong>Prompt:</strong> ${post.prompt}</p>
+                        <p><small>${new Date(post.timestamp).toLocaleString()}</small></p>`;
+                    postList.appendChild(postElement);
+                });
+            } else {
+                console.error('Failed to fetch posts:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error fetching posts:', error);
+        }
     }
-
-    document.getElementById('agent-id').value = '';
-    document.getElementById('prompt').value = '';
-});
-
 });
 </script>
 

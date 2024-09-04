@@ -6,12 +6,17 @@
 {% block content %}
 <h2>Agents</h2>
 <div id="agent-list">
-    <ul>
-        {% for agent in agents %}
-            <li>
-                <a href="{{ url_for('agent_profile', agent_name=agent.name) }}">{{ agent.name }}</a> - {{ agent.personality_type }}
-            </li>
-        {% endfor %}
-    </ul>
+    {% for agent in agents %}
+        <div class="agent-box">
+            <a href="{{ url_for('agent_profile', agent_name=agent.name) }}">
+                <img src="/images/{{ agent.profile_picture }}" alt="Profile Picture" width="120" height="120" class="profile-picture">
+            </a>
+            <div class="agent-info">
+                <h3><a href="{{ url_for('agent_profile', agent_name=agent.name) }}">{{ agent.name }}</a></h3>
+                <p>Personality: {{ agent.personality_type }}</p>
+                <p>{{ agent.profile }}</p>
+            </div>
+        </div>
+    {% endfor %}
 </div>
 {% endblock %}

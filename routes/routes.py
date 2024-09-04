@@ -1,17 +1,18 @@
 import sqlite3
 import datetime
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from services.agent_service import AgentService
 from config.config import Config
 from sqlalchemy.orm import aliased
 from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
+import os
 from models.database_models.models import Agent, Post, Comment, Interaction, AgentRelationship, Action, AgentAction
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 db_path = 'E:/ProjetosPython/NEWAI/app.db'
-
+image_directory = 'E:/ProjetosPython/NEWAI/data/img/'
 
 
 engine = create_engine(Config.DATABASE_URI)
@@ -25,6 +26,12 @@ agent_service = AgentService(Config.LLM_MODEL_NAME)
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/images/<filename>')
+def serve_profile_picture(filename):
+    return send_from_directory(image_directory, filename)
+
 
 @app.route('/action_log')
 def action_log():
@@ -57,50 +64,150 @@ def agents():
     agents = agent_service.get_agents()
     return render_template('agents.html', agents=agents)
 
+@app.route('/post_reply', methods=['POST'])
+def post_reply():
+    data = request.json
+    agent_id = data.get('agent_id')
+    post_id = data.get('post_id')
 
-@app.route('/agents/<agent_name>')
+    # Get the post details
+    post = session.query(Post).filter_by(id=post_id).first()
+    if not post:
+        return jsonify({'error': 'Post not found'}), 404
+
+    # Get the agent who made the post
+    post_owner = session.query(Agent).filter_by(id=post.agent_id).first()
+
+    if not post_owner:
+        return jsonify({'error': 'Post owner not found'}), 404
+
+    # Generate the reply
+    reply = agent_service.generate_agent_reply(agent_id, post.content, post_owner.name)
+
+    # Save the reply as a comment or interaction
+    new_comment = Comment(post_id=post.id, agent_id=agent_id, content=reply)
+    session.add(new_comment)
+    session.commit()
+
+    return jsonify({'message': 'Reply added successfully!', 'reply': reply}), 201
+
+
+
+@app.route('/agents/<agent_name>', methods=['GET'])
 def agent_profile(agent_name):
-    """
-    Route to display the profile of a specific agent, including their posts and actions.
-    """
-    # Get the agent by name
     agent = session.query(Agent).filter_by(name=agent_name).first()
-
     if not agent:
         return jsonify({'error': 'Agent not found'}), 404
 
-    # Get all posts made by this agent
     posts = session.query(Post).filter_by(agent_id=agent.id).all()
 
-    # Get all actions performed by this agent
-    actions_by_agent = session.query(AgentAction).filter_by(agent_id=agent.id).all()
+    # Ações realizadas pelo agente e a contagem delas por agente alvo
+    actions_by_count = (
+        session.query(
+            Action.action.label('action_name'),
+            Agent.name.label('target_agent_name'),
+            func.count(AgentAction.id).label('action_count')
+        )
+        .join(AgentAction, Action.id == AgentAction.action_id)
+        .join(Agent, Agent.id == AgentAction.target_agent_id)
+        .filter(AgentAction.agent_id == agent.id)
+        .group_by(Action.action, Agent.name)
+        .all()
+    )
 
-    # Get all actions performed against this agent
-    actions_against_agent = session.query(AgentAction).filter_by(target_agent_id=agent.id).all()
+    actions_list_by = (
+        session.query(
+            Action.action.label('action_name'),
+            Agent.name.label('target_agent_name'),
+            AgentAction.post_id,
+            AgentAction.timestamp
+        )
+        .join(AgentAction, Action.id == AgentAction.action_id)
+        .join(Agent, Agent.id == AgentAction.target_agent_id)
+        .filter(AgentAction.agent_id == agent.id)
+        .all()
+    )
 
-    # Format the posts and actions for display
-    post_list = [{'id': post.id, 'content': post.content, 'prompt': post.prompt, 'timestamp': post.timestamp} for post in posts]
+    # Ações realizadas contra o agente e a contagem delas por agente
+    actions_against_count = (
+        session.query(
+            Action.action.label('action_name'),
+            Agent.name.label('agent_name'),
+            func.count(AgentAction.id).label('action_count')
+        )
+        .join(AgentAction, Action.id == AgentAction.action_id)
+        .join(Agent, Agent.id == AgentAction.agent_id)
+        .filter(AgentAction.target_agent_id == agent.id)
+        .group_by(Action.action, Agent.name)
+        .all()
+    )
 
-    actions_by_list = [{
-        'action_name': action.action.action,
-        'target_agent_name': session.query(Agent).filter_by(id=action.target_agent_id).first().name,
-        'post_id': action.post_id,
-        'timestamp': action.timestamp
-    } for action in actions_by_agent]
-
-    actions_against_list = [{
-        'action_name': action.action.action,
-        'agent_name': session.query(Agent).filter_by(id=action.agent_id).first().name,
-        'post_id': action.post_id,
-        'timestamp': action.timestamp
-    } for action in actions_against_agent]
+    actions_list_against = (
+        session.query(
+            Action.action.label('action_name'),
+            Agent.name.label('agent_name'),
+            AgentAction.post_id,
+            AgentAction.timestamp
+        )
+        .join(AgentAction, Action.id == AgentAction.action_id)
+        .join(Agent, Agent.id == AgentAction.agent_id)
+        .filter(AgentAction.target_agent_id == agent.id)
+        .all()
+    )
+    # Retrieve the full profile with humor and friendships
+    profile_data = agent_service.get_agent_profile(agent.id)
 
     return render_template(
         'agent_profile.html',
+        agent=profile_data['agent'],
+        posts=profile_data['posts'],
+        actions_by=profile_data['actions_by'],
+        actions_against=profile_data['actions_against'],
+        humor=profile_data['humor'],
+        friendships=profile_data['friendships']
+    )
+
+
+@app.route('/posts/<int:post_id>')
+def post_detail(post_id):
+    """
+    Route to display the details of a specific post, including interactions and comments from other agents.
+    """
+    # Get the post by ID
+    post = session.query(Post).filter_by(id=post_id).first()
+
+    if not post:
+        return jsonify({'error': 'Post not found'}), 404
+
+    # Get the agent who created the post
+    agent = session.query(Agent).filter_by(id=post.agent_id).first()
+
+    # Get all actions related to this post
+    interactions = session.query(AgentAction).filter_by(post_id=post_id).all()
+
+    # Format the interactions for display
+    interaction_list = [{
+        'agent_name': session.query(Agent).filter_by(id=action.agent_id).first().name,
+        'action_name': action.action.action,
+        'timestamp': action.timestamp
+    } for action in interactions]
+
+    # Fetch all comments (replies) related to the post
+    comments = session.query(Comment).filter_by(post_id=post_id).all()
+
+    # Format the comments for display
+    comment_list = [{
+        'agent_name': session.query(Agent).filter_by(id=comment.agent_id).first().name,
+        'content': comment.content,
+        'timestamp': comment.timestamp
+    } for comment in comments]
+
+    return render_template(
+        'post_detail.html',
+        post=post,
         agent=agent,
-        posts=post_list,
-        actions_by=actions_by_list,
-        actions_against=actions_against_list
+        interactions=interaction_list,
+        comments=comment_list  # Pass comments to the template
     )
 
 
@@ -239,6 +346,25 @@ def list_agents():
     agents = agent_service.get_agents()
     return jsonify(agents), 200
 
+@app.route('/api/agents', methods=['GET'])
+def api_get_agents():
+    agents = agent_service.get_agents()
+    agent_list = []
+    for agent in agents:
+        # Safely retrieve the profile_picture field, defaulting to None if not present
+        profile_picture = agent.get('profile_picture', None)
+        profile_picture_url = f'/images/{profile_picture}' if profile_picture else None
+
+        agent_list.append({
+            'name': agent['name'],
+            'personality_type': agent['personality_type'],
+            'profile': agent['profile'],
+            'profile_picture': profile_picture_url
+        })
+    return jsonify(agent_list)
+
+
+
 @app.route('/agent/<int:agent_id>', methods=['GET'])
 def get_agent(agent_id):
     """
@@ -248,6 +374,17 @@ def get_agent(agent_id):
     if not agent:
         return jsonify({'error': 'Agent not found'}), 404
     return jsonify(agent), 200
+
+def get_agents(self):
+    agents = session.query(Agent).all()
+    return [{
+        'id': agent.id,
+        'name': agent.name,
+        'personality_type': agent.personality_type,
+        'profile': agent.profile,
+        'profile_picture': agent.profile_picture  # Ensure this field is included
+    } for agent in agents]
+
 
 @app.route('/interact', methods=['POST'])
 def interact():
@@ -272,11 +409,7 @@ def interact():
 
     return jsonify({'interaction': interaction_result}), 201
 
-# API routes for frontend
-@app.route('/api/agents', methods=['GET'])
-def api_get_agents():
-    agents = agent_service.get_agents()
-    return jsonify(agents)
+
 
 
 @app.route('/api/posts', methods=['GET'])

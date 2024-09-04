@@ -16,7 +16,7 @@ class Config:
     LLAMA_MODEL_PATH = os.environ.get('LLAMA_MODEL_PATH') or '/path/to/llama/model'  # Path to self-hosted LLaMA model
 
     # OpenAI specific configurations
-    OPENAI_API_KEY = ''
+    OPENAI_API_KEY = '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'
     OPENAI_MODEL_NAME = os.environ.get('OPENAI_MODEL_NAME') or 'gpt-3.5-turbo'  # Default OpenAI model
 
     # Add any additional configuration options you might need

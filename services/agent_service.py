@@ -1,3 +1,5 @@
+import requests
+
 from models.database_models.models import Agent, Post, Comment, Interaction, AgentRelationship, Action, AgentAction
 from models.ml_models.agent_llm import AgentLLM
 from sqlalchemy.orm import sessionmaker
@@ -5,6 +7,10 @@ from sqlalchemy import create_engine
 from config.config import Config
 import json
 import random
+import csv
+import deepai
+import os
+from collections import defaultdict
 from datetime import datetime, timedelta
 
 # Database setup
@@ -15,6 +21,167 @@ session = Session()
 class AgentService:
     def __init__(self, model_name):
         self.llm = AgentLLM(model_name)
+        deepai.api_key = '7c5f0825-9c84-4ed0-8721-8ecd6abf4e63'
+
+    def generate_profile_picture(self, agent_name, description):
+        # Call the DeepAI API to generate an image
+        try:
+            response = deepai.Completion.create(
+                'text2img',
+                {'text': description},
+            )
+            # Get the image URL from the response
+            image_url = response['output_url']
+
+            # Download and save the image locally
+            image_data = requests.get(image_url).content
+            image_path = f'E:/ProjetosPython/NEWAI/data/img/{agent_name}.jpg'
+            with open(image_path, 'wb') as handler:
+                handler.write(image_data)
+
+            return image_path
+        except Exception as e:
+            print(f"Error generating profile picture: {e}")
+            return None
+
+    def generate_agent_reply(self, post, agent_id):
+        """
+        Generate a reply to a post based on the agent's profile and characteristics.
+        """
+        agent = session.query(Agent).filter_by(id=agent_id).first()
+
+        if not agent:
+            return None
+
+        prompt = f"Imagine if you are a person with the characteristics: {agent.profile}. You are on a social network, and {agent.name} posted: '{post.content}'. Based on your characteristics and tuning, make a reply for this post. Talk in First Person."
+
+        # Generate response using LLM
+        response = self.llm.generate_response(prompt, agent.personality_type, json.loads(agent.tuning))
+
+        # Save the generated reply as a comment
+        comment = Comment(post_id=post.id, agent_id=agent.id, content=response)
+        session.add(comment)
+        session.commit()
+
+        return comment
+
+    def load_action_scores(self, file_path):
+        scores = {}
+        with open(file_path, mode='r', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                scores[row['Ação']] = int(row['Nota'])
+        return scores
+
+    # Function to calculate the humor score for an agent
+    def calculate_humor(self, actions_by, actions_against, action_scores):
+        total_score = 0
+        total_actions = 0
+
+        for action in actions_by + actions_against:
+            score = action_scores.get(action.action.action, 0)  # Accessing action_name through action.action
+            total_score += score
+            total_actions += 1
+
+        if total_actions > 0:
+            return round(total_score / total_actions, 2)
+        return 0
+
+    # Function to calculate friendships based on interactions
+    def calculate_friendship(self, agent_id, action_scores, session):
+        friendship_scores = defaultdict(int)
+
+        actions_by = session.query(AgentAction).filter(AgentAction.agent_id == agent_id).all()
+        actions_against = session.query(AgentAction).filter(AgentAction.target_agent_id == agent_id).all()
+
+        for action in actions_by:
+            score = action_scores.get(action.action.action, 0)
+            friendship_scores[action.target_agent_id] += score
+
+        for action in actions_against:
+            score = action_scores.get(action.action.action, 0)
+            friendship_scores[action.agent_id] += score
+
+        sorted_friendships = sorted(friendship_scores.items(), key=lambda item: item[1], reverse=True)
+
+        friendships = []
+        for related_agent_id, score in sorted_friendships:
+            agent_name = session.query(Agent).filter_by(id=related_agent_id).first().name
+            friendships.append({'agent_name': agent_name, 'score': score})
+
+        return friendships
+
+    def calculate_whole_median_humor(self):
+        agents = session.query(Agent).all()
+        total_humor = 0
+        num_agents = 0
+
+        for agent in agents:
+            actions_by = session.query(AgentAction).filter_by(agent_id=agent.id).all()
+            actions_against = session.query(AgentAction).filter_by(target_agent_id=agent.id).all()
+            humor = self.calculate_humor(actions_by, actions_against,
+                                         self.load_action_scores('E:/ProjetosPython/NEWAI/data/nota.csv'))
+            total_humor += humor
+            num_agents += 1
+
+        if num_agents > 0:
+            whole_median_humor = round(total_humor / num_agents, 2)
+        else:
+            whole_median_humor = 0
+
+        # Store the median humor in a file
+        try:
+            with open('E:/ProjetosPython/NEWAI/data/median_humor.txt', 'w') as file:
+                file.write(str(whole_median_humor))
+            print(f"Whole Median humor value calculated and stored: {whole_median_humor}")  # Debug output
+        except IOError as e:
+            print(f"Error writing whole median humor file: {e}")  # Debug output
+
+        return whole_median_humor
+
+    def read_whole_median_humor(self):
+        try:
+            with open('E:/ProjetosPython/NEWAI/data/median_humor.txt', 'r') as file:
+                whole_median_humor = file.read().strip()
+                print(f"Whole Median Humor Value Read from file: {whole_median_humor}")  # Debug line
+                return float(whole_median_humor)
+        except FileNotFoundError:
+            print("Error: median_humor.txt file not found.")
+            return None
+        except ValueError:
+            print("Error: Could not convert whole median humor value to float.")
+            return None
+
+    # Function to get the agent's profile with all required data
+    def get_agent_profile(self, agent_id):
+        agent = session.query(Agent).filter_by(id=agent_id).first()
+
+        if not agent:
+            return {'error': 'Agent not found'}
+
+        action_scores = self.load_action_scores('E:/ProjetosPython/NEWAI/data/nota.csv')
+
+        actions_by = session.query(AgentAction).filter_by(agent_id=agent_id).all()
+        actions_against = session.query(AgentAction).filter_by(target_agent_id=agent_id).all()
+
+        humor = self.calculate_humor(actions_by, actions_against, action_scores)
+
+        friendships = self.calculate_friendship(agent_id, action_scores, session)
+
+        # Hard-coded value for testing
+        whole_median_humor = 4.48
+
+        print(f"Debug: Whole Median Humor = {whole_median_humor}")  # Debugging line
+
+        return {
+            'agent': agent,
+            'posts': session.query(Post).filter_by(agent_id=agent_id).all(),
+            'actions_by': actions_by,
+            'actions_against': actions_against,
+            'humor': humor,
+            'friendships': friendships,
+            'whole_median_humor': whole_median_humor  # Pass the median humor to the template
+        }
 
     def choose_action(self, agent, post):
         """
@@ -54,7 +221,7 @@ class AgentService:
 
 
 
-    def create_agent(self, name, personality_type, tuning):
+    def create_agent(self, name, personality_type, tuning, description):
         tuning_json = json.dumps(tuning)
         new_agent = Agent(
             name=name,
@@ -64,11 +231,19 @@ class AgentService:
         )
         session.add(new_agent)
         session.commit()
+
+        # Generate profile picture based on description
+        image_path = self.generate_profile_picture(name, description)
+        if image_path:
+            new_agent.profile_picture = image_path
+            session.commit()
+
         return {
             'id': new_agent.id,
             'name': new_agent.name,
             'personality_type': new_agent.personality_type,
             'profile': new_agent.profile,
+            'profile_picture': image_path,
             'tuning': tuning
         }
 
@@ -79,7 +254,8 @@ class AgentService:
             'name': agent.name,
             'personality_type': agent.personality_type,
             'profile': agent.profile,
-            'tuning': json.loads(agent.tuning)
+            'tuning': json.loads(agent.tuning),
+            'profile_picture': agent.profile_picture  # Add this line
         } for agent in agents]
 
     def get_agent_by_id(self, agent_id):

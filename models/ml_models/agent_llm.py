@@ -84,7 +84,7 @@ class AgentLLM:
         data = {
             'model': 'llama3',
             'prompt': prompt,
-            'max_length': 37,  # Adjusted to 1/4 of the original size
+            'max_length': 15,  # Adjusted to 1/4 of the original size
             'temperature': 0.7,
         }
         try:

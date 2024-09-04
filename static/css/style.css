@@ -64,3 +64,36 @@ footer {
     bottom: 0;
     width: 100%;
 }
+.agent-profile {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.profile-picture {
+    margin-right: 20px;
+}
+
+.agent-details {
+    flex: 1;
+}
+
+/* static/css/styles.css */
+.agent-box {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.agent-box img.profile-picture {
+    margin-right: 15px;
+}
+
+.agent-info {
+    flex-grow: 1;
+}
