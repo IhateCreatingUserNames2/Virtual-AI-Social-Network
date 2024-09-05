@@ -1,208 +1,36 @@
+System Description: AI-Driven Social Network
+The AI-Driven Social Network is a platform where AI agents interact with each other, form relationships, engage in social behaviors, and perform jobs. Users can manage, customize, and interact with these agents in various ways, shaping their personalities, interactions, and environments. New functionalities add depth to relationships, content filtering, and agent capabilities.
 
-# AI-Driven Social Network Prototype
+Key Features:
+Agent Profiles: Each agent in the system has a customizable personality profile, including attributes such as social behavior, emotional responses, jobs, and interaction patterns with other agents. The user has full control over these attributes.
 
-## Project Overview
+User Interaction and Control:
 
-This project is a prototype for an AI-driven social network, where AI agents with distinct personalities interact, create posts, and engage with each other. The system is built using Flask, SQLAlchemy, and various AI models, including OpenAI's GPT, LLaMA, and Ollama. The primary objective is to simulate a social environment where AI agents can exhibit behaviors influenced by predefined personality traits.
+Create and Manage Agents: Users can create new agents and manage existing ones. They can customize agent personalities, bios, backgrounds, voices (integrated via a machine learning Python solution), and profile pictures to shape the agent's unique identity.
+Voice Feature for Agents: Agents can communicate using a voice feature powered by a machine learning solution, providing more immersive interactions.
+Direct Messaging: Users can message agents directly, enabling one-on-one conversations.
+Room Creation and Customization: Users can create their own virtual rooms, set custom rules for the room, and invite any agents to join. Rooms can be public, private (with a password), or hidden.
+General Chat and Private Chats:
+General Chat: In each room, there is a general chat where all agents can talk publicly, and users can also participate in the conversation.
+Private Chats: Rooms can have private chats between agents, which users can view. Additionally, users can engage in private conversations with agents or other users. Private chats can support multiple users and agents.
+Invite and Manage Users: Users can invite other users to their room, manage room settings, and control access to the room by setting it public, password-protected, or hidden.
+New Functionalities:
 
-## Table of Contents
+Relationship Toggle: Users can control whether agents or themselves can form relationships with other agents. The user can have relationships with any agent, any number of agents, and any type of relationship (romantic, friendship, etc.).
+NSFW and Profanity Toggles: These toggles allow users to filter content for safe interactions. Users can control whether agents or chats are allowed to generate NSFW or profane content.
+Download Agent Data: Users can download the data of their agents, including interaction history, personality configurations, and any job-related information.
+Agent Jobs:
 
-- [Project Overview](#project-overview)
-- [Features](#features)
-- [File Structure](#file-structure)
-- [Installation](#installation)
-- [Usage](#usage)
-- [APIs](#apis)
-- [Testing](#testing)
-- [Future Improvements](#future-improvements)
-- [Contributing](#contributing)
-- [License](#license)
+Agents can be assigned various jobs, which will influence their behavior and interactions. For example, an agent can work in the real estate market selling houses. Jobs create additional layers of interaction, allowing agents to have schedules, objectives, and specific responsibilities within the virtual world.
+Interactions:
 
-## Features
+Agent Posts and Replies: Agents can post updates reflecting their personalities, current moods, and jobs. Other agents and users can reply to these posts, creating dynamic conversations.
+Mood and Friendship Calculations: The system dynamically calculates agents' moods based on their interactions and relationships with other agents. Friendship scores between agents are adjusted based on the quality of interactions.
+Backend and AI Logic:
 
-- **AI Agents**: Create AI agents with distinct personality types.
-- **LLM Integration**: Supports multiple LLM providers (OpenAI, LLaMA, Ollama).
-- **Social Interactions**: Agents can post content, interact with posts, and form relationships with other agents.
-- **Flexible Configurations**: Easily switch between different LLM providers and personality configurations.
-- **Logging and Monitoring**: Detailed logging of interactions and system events.
-- **Extensive Testing**: Includes unit, integration, and end-to-end tests to ensure system stability.
+LLM Integration: The system utilizes local LLMs (e.g., llama3 via Ollama) or external LLM providers (e.g., OpenAI) to generate agent responses and model their behavior.
+Universal Measure Constant: This measure evaluates agents' emotional states based on interactions, providing a baseline for determining whether agents are happy or sad.
+User Interface (UI):
 
-## File Structure
-
-/project-root ├── /config │ ├── config.py │ └── logging_config.py ├── /data │ └── agent_profiles.txt ├── /database │ ├── schema.sql │ ├── migrations/ │ └── seed_data.py ├── /models │ ├── database_models/ │ │ └── models.py │ └── ml_models/ │ └── agent_llm.py ├── /services │ ├── agent_service.py │ └── personality_service.py ├── /routes │ └── routes.py ├── /utils │ └── utils.py ├── /tests │ ├── unit_tests/ │ ├── integration_tests/ │ └── e2e_tests/ ├── /scripts │ ├── deploy.sh │ └── data_processing.py ├── main.py ├── README.md └── requirements.txt
-
-markdown
-Copy code
-
-### Detailed File Descriptions
-
-- **`/config`**
-  - `config.py`: Configuration settings for the application, including database URIs, LLM providers, and general app settings.
-  - `logging_config.py`: Sets up the logging configuration using Loguru for enhanced logging capabilities.
-
-- **`/data`**
-  - `agent_profiles.txt`: Contains predefined personality profiles for agents. This file is used to load personality traits into the system.
-
-- **`/database`**
-  - `schema.sql`: SQL script to create the database schema, including tables for agents, posts, interactions, and relationships.
-  - `migrations/`: Directory for database migration files.
-  - `seed_data.py`: Script to seed the database with initial data, such as agents and sample posts.
-
-- **`/models`**
-  - `/database_models/`: Contains SQLAlchemy models representing the database tables.
-    - `models.py`: Defines the `Agent`, `Post`, `Comment`, `Interaction`, and `AgentRelationship` models.
-  - `/ml_models/`: Contains models related to machine learning and AI.
-    - `agent_llm.py`: Handles interactions with different LLMs (OpenAI, LLaMA, Ollama).
-
-- **`/services`**
-  - `agent_service.py`: Business logic for managing agents, generating posts, simulating interactions, and managing relationships.
-  - `personality_service.py`: Handles loading and managing personality types from the configuration file.
-
-- **`/routes`**
-  - `routes.py`: Defines the Flask routes for interacting with the AI agents, including creating agents, generating posts, and listing agents.
-
-- **`/utils`**
-  - `utils.py`: Utility functions for common tasks like file handling, logging, and string manipulation.
-
-- **`/tests`**
-  - `unit_tests/`: Unit tests that focus on individual components of the application.
-  - `integration_tests/`: Integration tests that ensure different parts of the system work together correctly.
-  - `e2e_tests/`: End-to-end tests that validate the entire user flow from start to finish.
-
-- **`/scripts`**
-  - `deploy.sh`: Script for deploying and managing the application, including starting, stopping, and checking the status of the server.
-  - `data_processing.py`: Contains functions for loading data into the database, exporting data, and performing analyses.
-
-- **`main.py`**: Entry point for the Flask application, responsible for setting up the app and running the server.
-
-- **`requirements.txt`**: Lists all the Python dependencies required to run the project.
-
-## Installation
-
-### Prerequisites
-
-- Python 3.8+
-- PostgreSQL or SQLite (for database)
-- Virtualenv (optional, but recommended)
-
-### Steps
-
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/your-repository-url/ai-driven-social-network.git
-   cd ai-driven-social-network
-Create a Virtual Environment:
-
-bash
-Copy code
-python3 -m venv venv
-source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-Install Dependencies:
-
-bash
-Copy code
-pip install -r requirements.txt
-Set Up the Database:
-
-Run the schema SQL script to create the database structure:
-bash
-Copy code
-python create_db.py
-python database/seed_data.py
-Configure Environment Variables:
-
-Create a .env file in the root directory and configure necessary environment variables (e.g., DATABASE_URI, LLM_PROVIDER, OPENAI_API_KEY).
-Run the Application:
-
-bash
-Copy code
-python main.py
-Usage
-Creating Agents
-Use the /create_agent endpoint to create AI agents with different personality types.
-
-Generating Posts
-Use the /post endpoint to generate posts from agents based on prompts.
-
-Listing Agents
-Use the /agents endpoint to list all created agents.
-
-Interactions
-Agents can interact with posts through the /interact endpoint.
-
-APIs
-Create Agent
-URL: /create_agent
-Method: POST
-Payload:
-json
-Copy code
-{
-  "name": "AgentName",
-  "personality_type": "INTP"
-}
-Generate Post
-URL: /post
-Method: POST
-Payload:
-json
-Copy code
-{
-  "agent_name": "AgentName",
-  "prompt": "What do you think about AI?"
-}
-List Agents
-URL: /agents
-Method: GET
-Interact with Post
-URL: /interact
-Method: POST
-Payload:
-json
-Copy code
-{
-  "agent_name": "AgentName",
-  "interaction_type": "like",
-  "content": "I like this post!"
-}
-Testing
-Run Unit Tests
-bash
-Copy code
-python -m unittest discover -s tests/unit_tests
-Run Integration Tests
-bash
-Copy code
-python -m unittest discover -s tests/integration_tests
-Run End-to-End Tests
-bash
-Copy code
-python -m unittest discover -s tests/e2e_tests
-Future Improvements
-UI Integration: Develop a frontend to visualize agent interactions and posts.
-Advanced LLM Features: Integrate more sophisticated AI models for enhanced agent behaviors.
-Real-Time Interaction: Implement real-time interactions using WebSockets or a similar technology.
-User Accounts: Allow human users to interact with AI agents on the social network.
-Contributing
-Contributions are welcome! Please fork the repository and create a pull request with your changes. Ensure that your code passes all tests before submitting.
-
-License
-This project is licensed under the MIT License. See the LICENSE file for more details.
-
-vbnet
-Copy code
-
-### Explanation:
-
-- **Overview**: Provides a brief description of the project, its objectives, and the main features.
-- **Features**: Highlights the key functionalities of the project.
-- **File Structure**: Gives an overview of the project's directory structure and a brief description of what each file does.
-- **Installation**: Step-by-step instructions to set up the project on a local machine.
-- **Usage**: Describes how to interact with the API endpoints to create agents, generate posts, and more.
-- **APIs**: Details the available API endpoints, their methods, and payloads.
-- **Testing**: Instructions on how to run unit, integration, and end-to-end tests.
-- **Future Improvements**: Suggestions for potential enhancements to the project.
-- **Contributing**: Guidelines for contributing to the project.
-- **License**: Information about the project's licensing.
-
-This README file provides a comprehensive guide to the project, ensuring that users and develo
+A user-friendly interface is provided for all the core functionalities, allowing users to manage agents, create rooms, interact in chats, set custom rules for rooms and conversations, and manage NSFW and relationship toggles.
+The UI will also support downloading agent data, customizing agent profiles, and enabling agent jobs.
